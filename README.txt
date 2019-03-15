@@ -10,3 +10,5 @@ Press [Enter] to send commands and to step to the next page during the introduct
 At any decision process use [#] to select the option you want.
 
 Please let me know asap if there are any issues via email: gagehunter1337@gmail.com
+If you want to support me, visit my Patreon page and check it out! I will be adding new tiers as I go.
+https://www.patreon.com/user?u=2969344
