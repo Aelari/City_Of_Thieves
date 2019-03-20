@@ -1,0 +1,6 @@
+C:\Users\Aelari\documents\visual studio 2015\Projects\AdventureGame\AdventureGame\bin\Debug\City of Thieves.exe.config
+C:\Users\Aelari\documents\visual studio 2015\Projects\AdventureGame\AdventureGame\bin\Debug\City of Thieves.exe
+C:\Users\Aelari\documents\visual studio 2015\Projects\AdventureGame\AdventureGame\bin\Debug\City of Thieves.pdb
+C:\Users\Aelari\documents\visual studio 2015\Projects\AdventureGame\AdventureGame\obj\Debug\City of Thieves.exe
+C:\Users\Aelari\documents\visual studio 2015\Projects\AdventureGame\AdventureGame\obj\Debug\City of Thieves.pdb
+C:\Users\Aelari\documents\visual studio 2015\Projects\AdventureGame\AdventureGame\obj\Debug\AdventureGame.csprojResolveAssemblyReference.cache

@@ -1,32 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Text.RegularExpressions;
 
 // Program: Adventure Game
 // Author: Gage Hunter
-// Version: 0.2
+// Version: 0.4
 // Date: 07/03/2019
 // Description: An adventure game created as a testing field for C# based on the 'City of Thieves' choose your own adventure novel by Ian Livingstone.
 
 namespace AdventureGame
 {
+    // Game class contains methods relating to Game functions
     public static class Game
     {
+        // Default values for variables
         public static string CharacterName = "Bartholomew Black";
         public static int skill = 0;
         public static int stam = 0;
         public static int luck = 0;
+        public static int lScore = 0;
+        public static bool lucky = true;
+        public static int monStam = 0;
+        public static int monSkill = 0;
 
+        // Head method writes game title
         public static void Head()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.DarkYellow;
+            // Declare game title in strings
             string title1 = "______________________________________________________________________________________________________";
             string title2 = "│                                                                                                    │";
             string title3 = "│ ▄█▄    ▄█    ▄▄▄▄▀ ▀▄    ▄     ████▄ ▄████         ▄▄▄▄▀ ▄  █ ▄█ ▄███▄      ▄   ▄███▄     ▄▄▄▄▄    │";
@@ -37,6 +40,7 @@ namespace AdventureGame
             string title8 = "│                                        ▀                  ▀                █▐                      │";
             string title9 = "│                                                                            ▐                       │";
             string title0 = "|____________________________________________________________________________________________________|";
+            // Write game title strings in centre of the console window
             Console.WriteLine(String.Format("{0," + ((Console.WindowWidth / 2) + (title1.Length / 2)) + "}", title1));
             Console.WriteLine(String.Format("{0," + ((Console.WindowWidth / 2) + (title2.Length / 2)) + "}", title2));
             Console.WriteLine(String.Format("{0," + ((Console.WindowWidth / 2) + (title3.Length / 2)) + "}", title3));
@@ -51,8 +55,10 @@ namespace AdventureGame
             Console.ResetColor();
         }
 
-        //keep track of the end width right here
+        //keep track of the end width right here (part of WordWrap method)
         static int endWidth = 0;
+
+        // Wrapping funtion to keep lines of text intact. Advice provided by a stack exchange user Kyle Olson.
         public static void WordWrap(string paragraph, int tabSize = 8)
         {
             //were only doing one bit at a time
@@ -98,20 +104,26 @@ namespace AdventureGame
             //write a line for each wrapped line
             foreach (string wrap in wrapped)
             {
-                Console.WriteLine(wrap);
+                foreach (char c in wrap)
+                {
+                    Console.Write(c);
+                    Thread.Sleep(50);
+                }
 
             }
 
             //don't write line, just write. You can add a new line later if you need it, 
             //but if you do, reset endWidth to zero
-            Console.Write(process);
+            foreach (char c in process)
+            {
+                Console.Write(c);
+                Thread.Sleep(50);
+            }
 
-            //endWidth will now be the lenght of the last line.
-            //if this didn't go to another line, you need to add the old endWidth
-            endWidth = process.Length + endWidth;
-
+                //endWidth will now be the lenght of the last line.
+                //if this didn't go to another line, you need to add the old endWidth
+                endWidth = process.Length + endWidth;
         }
-
 
         //use this to end a paragraph
         public static void EndParagraph()
@@ -121,10 +133,12 @@ namespace AdventureGame
             endWidth = 0;
         }
 
+        // Beginning of game introduction, character naming and rolling of stats
         public static void StartGame()
         {
             Head();
-            Game.WordWrap("The prosperous town of Silverton is being held to ransom by Zanbar Bone and his bloodthirsty Moon Dogs. YOU are an adventurer, and the merchants of Silverton turn to you in their hour of need. Your mission takes you along dark, twisting streets, where thieves, vagabonds and creatures of the night lie in wait to trap the unwary traveller. And beyond lies the most fearsome adventure of them all - the tower stronghold of the infamous Zanbar Bone!");
+            Thread.Sleep(100);
+            WordWrap("The prosperous town of Silverton is being held to ransom by Zanbar Bone and his bloodthirsty Moon Dogs. YOU are an adventurer, and the merchants of Silverton turn to you in their hour of need. Your mission takes you along dark, twisting streets, where thieves, vagabonds and creatures of the night lie in wait to trap the unwary traveller. And beyond lies the most fearsome adventure of them all - the tower stronghold of the infamous Zanbar Bone!");
             Game.EndParagraph();
             Console.WriteLine("\nPress Enter to continue");
             while (Console.ReadKey().Key != ConsoleKey.Enter) { }
@@ -136,6 +150,7 @@ namespace AdventureGame
             Console.ReadKey();
         }
 
+        // Name character method
         static void NameCharacter()
         {
             Head();
@@ -144,6 +159,7 @@ namespace AdventureGame
             Console.WriteLine("\nFantastic! Your name is now " + CharacterName + ".");
         }
 
+        // Roll stats method
         static void ChooseCharacter()
         {
             Random rnd = new Random();
@@ -162,16 +178,154 @@ namespace AdventureGame
             Console.WriteLine("Your Luck is: " + luck);
         }
 
+        // Method to test the Characters luck
+        public static void testLuck()
+        {
+            Game.lScore = RandomNumber(1, 7) + RandomNumber(1, 7);
+
+            if (lScore <= luck)
+            {
+                lucky = true;
+            }
+            else
+            {
+                lucky = false;
+            }
+        }
+
+        // Function to get a random number 
+        private static readonly Random random = new Random();
+        private static readonly object syncLock = new object();
+        public static int RandomNumber(int min, int max)
+        {
+            lock (syncLock)
+            { // synchronize
+                return random.Next(min, max);
+            }
+        }
+
+        // Combat function
+        public static void Combat()
+        {
+            int monAS = 10;
+            int plAS = 10;
+            bool live = true;
+
+            // While loop to continue combat until either player on monster(s) are dead
+            while (live == true)
+            {
+                // Attack scores for MONster and PLayer
+                monAS = RandomNumber(1, 7) + RandomNumber(1, 7) + Game.monSkill;
+                plAS = RandomNumber(1, 7) + RandomNumber(1, 7) + Game.skill;
+
+                // Print Attack scores
+                Console.WriteLine("Your Attack is: " + plAS + "\n");
+                Console.WriteLine("Their Attack is: " + monAS + "\n");
+
+                // IF statement to determine who is hit, checks if scores are tied first resulting in neither taking damage
+                if (monAS == plAS)
+                {
+                    Console.WriteLine("Your weapons glance off each other.");
+                }
+                // If AS is not equal, continue checking values
+                else
+                {
+                    // IF statement checks if player AS is higher
+                    if (plAS > monAS)
+                    {
+                        // Results if player hits
+                        Console.WriteLine("You have struck the enemy, would you like to try your luck and inflict a serious wound?");
+                        // Player can spend luck to deal extra damage
+                        string luck = Console.ReadLine();
+                        if (luck == "yes")
+                        {
+                            // Call method to test players luck
+                            testLuck();
+                            if (Game.lucky)
+                            {
+                                Console.WriteLine("You have dealt a serious blow!");
+                                Game.monStam = Game.monStam - 4;
+                            }
+                            else
+                            {
+                                Console.WriteLine("You have failed to deal extra damage.");
+                                Game.monStam = Game.monStam - 2;
+                            }
+                            // Reduce players luck score by 1 after testing
+                            Game.luck--;
+                        }
+                        // If player does not want to spend luck
+                        else
+                        {
+                            Console.WriteLine("You have landed a hit!");
+                            Game.monStam = Game.monStam - 2;
+                        }
+                    }
+                    // If enemy AS is higher
+                    else
+                    {
+                        // Results when enemy hits
+                        Console.WriteLine("The enemy is about to hit you, would you like to try your luck and avoid some of the damage?");
+                        // Player can reduce damage by spending luck
+                        string luck = Console.ReadLine();
+                        if (luck == "yes")
+                        {
+                            testLuck();
+                            if (Game.lucky)
+                            {
+                                Console.WriteLine("You have avoided some of the damage!");
+                                Game.stam = Game.stam - 1;
+                            }
+                            else
+                            {
+                                Console.WriteLine("You have failed to dodge in time.");
+                                Game.stam = Game.stam - 2;
+                            }
+                            Game.luck--;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You have taken a hit!");
+                            Game.stam = Game.stam - 2;
+                        }
+                    }
+                }
+                // IF statement checks to see if player Stamina hits ZERO
+                if (Game.stam <= 0)
+                {
+                    // Player death when Stamina hits ZERO
+                    Console.WriteLine("You have died.");
+                    live = false;
+                    StartGame();
+                }
+                // IF statement checks to see if enemy Stamina hits ZERO
+                else if (Game.monStam <= 0)
+                {
+                    // Player wins combat
+                    Console.WriteLine("You have slain the monster!");
+                    live = false;
+                    Game.monSkill = 0;
+                    Game.monStam = 0;
+                    return;
+                }
+                // Prints player Stamina, Luck and AS, and monster Stamina and AS
+                Console.WriteLine("\nYour Stamina is: " + Game.stam + "\n" + "Your Luck is: " + Game.luck + "\n" + "Your Attack is: " + plAS + "\n" + "The monsters Stamina is: " + Game.monStam + "\n" + "The monsters Attack is: " + monAS);
+                Console.ReadLine();
+            }
+        }
+
+        // Incorrect input
         static void BadInput()
         {
             Console.WriteLine("You must enter a valid option.");
         }
 
+        // All story options listed p1 --> p400. Each option clears the screen and reprints the head.
         public static void p1()
         {
             Game.Head();
             string input = "";
-            Game.WordWrap("The walk to Port Blacksand takes you west some fifty miles across plains and over hills; fortunately without any harmful encounters. Eventually you reach the coast and see the high city wall surrounding Port Blacksand and the cluster of buildings projecting into the sea like an ugly black mark. Ships lie anchored in the harbour and smoke rises gently from chimneys. It looks peaceful enough and it is only when the wind changes that you smell the decay in the breeze to remind you of the evil nature of this notorious place. Following the dusty road north along the coast to the city gates, you begin to notice fearful warnings - skulls on wooden spikes, starving men in iron cages suspended from the city wall and black flags everywhere. As you approach the main gate a chill runs down your spine and you instinctively grip the hilt of your broadsword for reassurance. At the gate you are confronted by a tall guard wearing a black chainmail coat and iron helmet. He steps forward, barring the way with his pike, saying, ");
+            WordWrap("The walk to Port Blacksand takes you west some fifty miles across plains and over hills; fortunately without any harmful encounters. Eventually you reach the coast and see the high city wall surrounding Port Blacksand and the cluster of buildings projecting into the sea like an ugly black mark. Ships lie anchored in the harbour and smoke rises gently from chimneys. It looks peaceful enough and it is only when the wind changes that you smell the decay in the breeze to remind you of the evil nature of this notorious place. Following the dusty road north along the coast to the city gates, you begin to notice fearful warnings - skulls on wooden spikes, starving men in iron cages suspended from the city wall and black flags everywhere. As you approach the main gate a chill runs down your spine and you instinctively grip the hilt of your broadsword for reassurance. At the gate you are confronted by a tall guard wearing a black chainmail coat and iron helmet. He steps forward, barring the way with his pike, saying, ");
             Game.WordWrap("\"Who would enter Port Blacksand uninvited? State the nature of your business or go back the way you came.\"");
             EndParagraph();
             Console.WriteLine("Will you");
@@ -247,117 +401,686 @@ namespace AdventureGame
 
         public static void p3()
         {
-            
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            EndParagraph();
+            Console.WriteLine("Do you wish to");
+
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p4()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("You hear a bell ring on the other side of the door and a few minutes later the door is opened by a thin, pale-skinned man with dark, hollow eyes, who is wearing a servant's uniform. In a cold, hissing voice he says, \"Yes?\"");
+            EndParagraph();
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Tell him you are a lost traveller?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Attack him with your sword?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p339();
+            }
+            else if (input == "2")
+            {
+                p35();
+            }
+            else
+            {
+                BadInput();
+                p4();
+            }
         }
 
         public static void p5()
         {
+            Game.Head();
 
+            WordWrap("Drawing your sword you leap over the counter to attack the ");
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            WordWrap("Man-Orc");
+            Console.ResetColor();
+            WordWrap(", who swiftly grabs his hand-axe. You soon realise that the ");
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            WordWrap("Man-Orc");
+            Console.ResetColor();
+            WordWrap(" has used his weapon before.");
+            EndParagraph();
+
+            Game.monStam = 5;
+            Game.monSkill = 8;
+            Game.Combat();
+            Console.ReadLine();
+            p371();
         }
 
         public static void p6()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("Her tone becomes unpleasant and she tells you to get out of her house because there are certainly no rags in it, nor any other kind of jumble for that matter.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Leave the house and continue along Sable Street?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Go through the curtains to see who is being so rude to you?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p333();
+            }
+            else if (input == "2")
+            {
+                p88();
+            }
+            else
+            {
+                BadInput();
+                p6();
+            }
         }
 
         public static void p7()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("You tiptoe quietly out of the room and close the door.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p8()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p9()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p10()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p11()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p12()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p13()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p14()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p15()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p16()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p17()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p18()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p19()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p20()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p21()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p22()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p23()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p24()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p25()
         {
+            Game.Head();
+            string input = "";
+            WordWrap("The man stops playing and tells you that he can bring you good fortune. For the sum of 3 Gold Pieces he will sing you a song that will bring you luck.");
+            Console.WriteLine("Do you wish to");
 
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[1] Pay the musician?");
+            EndParagraph();
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Game.WordWrap("[2] Walk to the next stall?");
+            EndParagraph();
+
+            input = Console.ReadLine();
+            if (input == "1")
+            {
+                p37();
+            }
+            else if (input == "2")
+            {
+                p398();
+            }
+            else
+            {
+                BadInput();
+                p3();
+            }
         }
 
         public static void p26()
@@ -482,7 +1205,7 @@ namespace AdventureGame
 
         public static void p50()
         {
-
+            
         }
 
         public static void p51()
@@ -2275,13 +2998,16 @@ namespace AdventureGame
         }
     }
 
+    // Item class stores what items are collected in game
     class Item
     {
 
     }
 
+    // Program class initiates game, continues introduction and sets window size and other initial values.
     class Program
     {
+        // Window size to full screen (Unsure of specifics as code is not mine originally).
         [DllImport("kernel32.dll", ExactSpelling = true)]
         private static extern IntPtr GetConsoleWindow();
         private static IntPtr ThisConsole = GetConsoleWindow();
@@ -2292,23 +3018,33 @@ namespace AdventureGame
         private const int MINIMIZE = 6;
         private const int RESTORE = 9;
 
+        // Main method is the game code itself, also includes one part of the code to set window size and title
         static void Main()
         {
+            // Window settings (title and size)
             Console.Title = "City of Thieves - A Fighting Fantasy adventure!";
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
-            
+            Console.SetBufferSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             ShowWindow(ThisConsole, MAXIMIZE);
+
+            // Game start
             Game.StartGame();
             Game.Head();
             Game.WordWrap("You are an adventurer in a world full of monsters and magic, living by quickness of wit and skill of sword. You earn gold as a hired warrior, usually in the employ of rich nobles and barons on missions too dangerous or difficult for their own men. Slaying monsters and fearsome beasts in pursuit of some fabled treasure comes as second nature to you. Being an experienced and highly trained swordsman, you allow nothing to stand in your way on your quests. Your success on a mission is always assured and your reputation has spread throughout the lands. Whenever you enter a village or town, the news of your arrival spreads through the citizens like wildfire, as few of them have ever met a dragon-slayer before.");
             Game.EndParagraph();
+            // Each paragraph is printed with a pause between
             Thread.Sleep(1000);
+
             Game.WordWrap("One evening, after a long walk through the outlands, you arrive at Silverton, which lies at the crossroads of the main trading routes in these parts. Great wooden wagons hauled by teams of oxen are often seen rumbling slowly through the town laden with herbs, spices, silks, metalware and exotic foods from far off lands.");
             Game.EndParagraph();
             Thread.Sleep(1000);
+
             Game.WordWrap("Over the years Silverton has prospered as a result of the rich merchants and traders stopping there en route to distant markets. Its wealth is quite apparent, with ornate buildings and richly dressed people aplenty. But as you enter the town gates, something strikes you as being not quite right. The people look nervous and on edge. Then you notice that all the windows on the buildings have great iron grills bolted over them and the doors have been strengthened too. Although you prefer your own company to that of others, you decide to stay in Silverton for the night to find out who or what is troubling the people.");
             Game.EndParagraph();
-            Console.ReadLine();
+            // To improve readability, paragraphs are not printed all at once. To continue to the next page Enter must be pressed.
+            Console.WriteLine("\nPress Enter to continue");
+            while (Console.ReadKey().Key != ConsoleKey.Enter) { }
+
             Game.Head();
             Game.WordWrap("As you walk down the main street, a single note from a bell rings out from a tall tower ahead. Then a man shouts, almost deperately. ");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -2331,6 +3067,7 @@ namespace AdventureGame
             Game.WordWrap(", I must speak with you. Please sit down. It is important that I speak with you.\"");
             Game.EndParagraph();
             Thread.Sleep(1000);
+
             Game.WordWrap("When he turns to the innkeeper to snap his fingers for food and drink, you can see that he is obviously of some standing in the town, but his face is full of anguish and sorrow. Being curious, you decide to hear what the man has to say. He pulls out a chair for you at the table, bidding you to sit down and the innkeeper bustles in with a tray laden with hot broth, roast geese and mead. The man in the scarlet robes sits opposite in silence, watching you as you feast as though examining you for some purpose of his own. Finally as you push your plate away, the man leans forward and says, in a low but anxious voice, ");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Game.WordWrap("\"");
@@ -2351,7 +3088,9 @@ namespace AdventureGame
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Game.WordWrap("! Anyway, that same night after the Spirit Stalkers left, our troubles began. The Night Prince was angry and determined to harm us. Six Moon Dogs came, each stronger than four men, each with razor-sharp fangs. They stalked through the town, entering homes through open windows, and killing the poor people inside.\"");
             Game.EndParagraph();
-            Console.ReadLine();
+            Console.WriteLine("\nPress Enter to continue");
+            while (Console.ReadKey().Key != ConsoleKey.Enter) { }
+
             Game.Head();
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Game.WordWrap("\"In the morning we counted twenty-three dead. So we barred our windows and bolted our doors, yet each night the Moon Dogs return and we are unable to sleep for fear that they might find a way into our homes. Some people are now talking of sending Mirelle to ");
@@ -2389,11 +3128,13 @@ namespace AdventureGame
             Game.WordWrap(". Take these 30 Gold Pieces for your journey, and take this sword to use and keep.\"");
             Game.EndParagraph();
             Thread.Sleep(1000);
+
             Game.WordWrap("As Owen Carralif rises, he pulles back his scarlet robe, revealing the finest broadsword you have ever seen. He hands it to you and, touching the edge of the blade, you are surprised to see a droplet of blood fall from your finger. You then examine the marvelously ornate gilded serpents twining round the hilt. You have never wanted anything so badly in your life before. You stand up and hold out your right arm to Owen. He shakes it eagerly, saying, ");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Game.WordWrap("\"You must set off at the first light of dawn - the Moon Dogs will be gone by then. I shall be forced to stay the night here also, so let\'s drink to our destiny and may the gods be with us.\"");
             Game.EndParagraph();
             Thread.Sleep(1000);
+
             Game.WordWrap("For the next hour Owen talks about your upcoming journey, explaining in detail how to reach ");
             Console.ForegroundColor = ConsoleColor.Magenta;
             Game.WordWrap("Port Blacksand");
@@ -2408,7 +3149,10 @@ namespace AdventureGame
             Console.ResetColor();
             Game.WordWrap(". As you leave the tavern, a black cat scurries past your feet and you almost trip; a bad omen perhaps?");
             Game.EndParagraph();
-            Console.ReadLine();
+            Console.WriteLine("\nPress Enter to continue");
+            while (Console.ReadKey().Key != ConsoleKey.Enter) { }
+
+            // Beginning of player interaction with the story.
             Game.p1();
         }
     }
